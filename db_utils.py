@@ -56,15 +56,15 @@ def get_available_years():
     return sorted(anos, reverse=True)
 
 
-def get_sessions_by_year(year: int):
+def get_sessions_by_year(year: int, session_type: str = "Race"):
     """
-    Retorna lista de sessões de corrida (tipo 'Race') para um ano específico.
+    Retorna lista de sessões de um tipo para um ano específico.
     Cada item tem session_key, session_name, country_name e circuit_short_name.
     """
     db = get_db()
     filtro = {
         "year": year,
-        "session_type": "Race"
+        "session_type": session_type
     }
     campos = {
         "_id": 0,
@@ -103,6 +103,7 @@ def get_drivers_in_session(session_key: int):
         "driver_number": 1,
         "full_name": 1,
         "team_name": 1,
+        "team_colour": 1,
         "name_acronym": 1,
     }
     pilotos = list(db.drivers.find(filtro, campos).sort("full_name", 1))

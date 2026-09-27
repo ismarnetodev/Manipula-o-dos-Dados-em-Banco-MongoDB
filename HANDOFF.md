@@ -1,14 +1,14 @@
 # HANDOFF.md – OpenF1 Data Explorer
 
 **Branch:** `branch-ismar`  
-**Data:** 26/09/2026  
+**Data:** 27/09/2026  
 **Responsável até aqui:** Rejan  
 
 ---
 
 ## Estado atual do repositório
 
-### O que já está feito (~50%)
+### O que está implementado
 
 | Arquivo | O que faz |
 |---|---|
@@ -16,30 +16,34 @@
 | `.env.example` | Modelo do arquivo de configuração com `MONGODB_URI` e `DB_NAME` |
 | `.gitignore` | Ignora `.env`, `__pycache__`, `.venv` |
 | `db_utils.py` | Módulo completo de conexão e consultas ao MongoDB |
-| `streamlit_app.py` | Interface funcional com sidebar, métricas, seleção de pilotos, gráfico e tabela |
-| `README.md` | Instruções de instalação e estrutura do projeto |
+| `streamlit_app.py` | Interface com filtros, métricas, comparação de voltas e setores, estatísticas, tabela e exportação |
+| `README.md` | Instruções de instalação, execução no PowerShell e funcionalidades |
 
 ### Funcionalidades implementadas
 
 - ✅ Conexão ao MongoDB via variável de ambiente (`.env`)
 - ✅ Teste de conexão na inicialização da app (com `st.stop()` se falhar)
 - ✅ Sidebar com filtro por **ano** (carregado dinamicamente da coleção `sessions`)
-- ✅ Sidebar com filtro por **sessão de corrida** (tipo `Race`, por ano)
+- ✅ Sidebar com filtro por **tipo de sessão** (`Race`, `Qualifying` e práticas) e sessão, por ano
 - ✅ Painel principal com **métricas da sessão**: País, Circuito, Data
 - ✅ Seleção de **múltiplos pilotos** via `st.multiselect` (carregados da coleção `drivers`)
 - ✅ Gráfico interativo de **tempo por volta** (`lap_duration` × `lap_number`) com Plotly
+- ✅ Estatísticas por piloto: melhor volta, média e desvio padrão
+- ✅ Gráfico comparativo dos três setores
+- ✅ Marcadores para voltas de saída dos boxes e cores de equipe quando disponíveis
 - ✅ Tabela expansível com **dados brutos** das voltas (setores, pit out lap, etc.)
+- ✅ Download dos dados filtrados em CSV compatível com Excel
 - ✅ Cache com `@st.cache_data` em todas as queries (evita reconsultar o banco a cada interação)
 
 ---
 
-## TODO – O que falta implementar (~50% restante)
+## Entregas concluídas nesta etapa
 
-A seguir estão as tarefas que precisam ser concluídas, em ordem de prioridade:
+As seis tarefas listadas abaixo foram incorporadas. Os trechos de código permanecem como referência do handoff original.
 
-### 1. Análise estatística por piloto (ALTA PRIORIDADE)
+### ✅ 1. Análise estatística por piloto (ALTA PRIORIDADE)
 **Arquivo:** `streamlit_app.py` (nova seção após o gráfico)  
-**O que fazer:**
+**Implementado:**
 - Calcular e exibir para cada piloto selecionado:
   - Melhor volta (`lap_duration.min()`)
   - Volta média (`lap_duration.mean()`)
@@ -58,9 +62,9 @@ st.dataframe(stats, use_container_width=True, hide_index=True)
 
 ---
 
-### 2. Gráfico de setores (ALTA PRIORIDADE)
+### ✅ 2. Gráfico de setores (ALTA PRIORIDADE)
 **Arquivo:** `streamlit_app.py` (nova aba ou seção)  
-**O que fazer:**
+**Implementado:**
 - Adicionar um segundo gráfico mostrando `duration_sector_1`, `duration_sector_2`, `duration_sector_3` para os pilotos selecionados
 - Pode usar `px.bar` com `barmode="group"` agrupado por volta, ou um segundo `px.line`
 - O DataFrame `df` já tem as colunas de setor, só precisa fazer o melt e plotar
@@ -80,9 +84,9 @@ st.plotly_chart(fig_setores, use_container_width=True)
 
 ---
 
-### 3. Identificar e destacar pit stops no gráfico principal (MÉDIA PRIORIDADE)
+### ✅ 3. Identificar e destacar pit stops no gráfico principal (MÉDIA PRIORIDADE)
 **Arquivo:** `streamlit_app.py`  
-**O que fazer:**
+**Implementado:**
 - Usar a coluna `is_pit_out_lap` (booleana) que já está no `df` para marcar visualmente as voltas de saída do pit no gráfico principal
 - Adicionar uma camada de scatter por cima do line chart, filtrando `df[df["is_pit_out_lap"] == True]`
 
@@ -102,11 +106,10 @@ for piloto in df_pits["piloto"].unique():
 
 ---
 
-### 4. Filtro por tipo de sessão (MÉDIA PRIORIDADE)
+### ✅ 4. Filtro por tipo de sessão (MÉDIA PRIORIDADE)
 **Arquivo:** `db_utils.py` + `streamlit_app.py`  
-**O que fazer:**
-- A função `get_sessions_by_year` atualmente filtra só `"Race"`. Adicionar opção na sidebar para escolher entre `["Race", "Qualifying", "Practice 1", "Practice 2", "Practice 3"]`
-- Passar esse filtro como parâmetro para a função
+**Implementado:**
+- `get_sessions_by_year` recebe o tipo escolhido na sidebar e filtra entre `Race`, `Qualifying` e `Practice 1`, `Practice 2` ou `Practice 3`.
 
 ```python
 # Em db_utils.py – alterar a assinatura:
@@ -121,9 +124,9 @@ sessoes = carregar_sessoes(ano_selecionado, tipo_sessao)
 
 ---
 
-### 5. Exportar dados como CSV (BAIXA PRIORIDADE)
+### ✅ 5. Exportar dados como CSV (BAIXA PRIORIDADE)
 **Arquivo:** `streamlit_app.py`  
-**O que fazer:**
+**Implementado:**
 - Após a tabela de dados brutos, adicionar um botão de download com `st.download_button`
 
 ```python
@@ -139,9 +142,9 @@ st.download_button(
 ---
 
 ### 6. Ajuste visual e polish final (BAIXA PRIORIDADE)
-- Melhorar o CSS inline no `st.markdown` para deixar as métricas com fundo colorido
-- Adicionar ícone/cor da equipa em cada piloto (campo `team_colour` se disponível na coleção `drivers`)
-- Testar com dados reais do GP da Itália 2023 (`session_key=9159`) conforme descrito no documento da prática
+- ✅ O CSS das métricas foi atualizado.
+- ✅ As cores de equipe são usadas nos gráficos quando o campo `team_colour` está disponível.
+- ⏳ Ainda falta validar com dados reais do GP da Itália 2023 (`session_key=9159`); isso requer MongoDB acessível e populado.
 
 ---
 
@@ -150,7 +153,7 @@ st.download_button(
 - **NÃO** modifique a lógica de `get_client()` / `get_db()` em `db_utils.py` sem necessidade — o singleton de conexão funciona bem pra Streamlit
 - O cache `@st.cache_data(ttl=300)` nas funções de query é intencional. Se precisar forçar refresh, pode reduzir o TTL ou usar `st.cache_data.clear()`  
 - A coleção `drivers` pode não ter `name_acronym` em todas as versões da API — o código já tem fallback com `str(driver_number)`
-- Testar localmente com `streamlit run streamlit_app.py` após criar o `.env` a partir do `.env.example`
+- Executar no Windows sem ativar o ambiente: `.\venv\Scripts\python.exe -m streamlit run streamlit_app.py` após configurar `.env`.
 
 ---
 
