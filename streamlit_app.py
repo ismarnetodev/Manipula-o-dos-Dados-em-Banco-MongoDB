@@ -166,9 +166,10 @@ st.subheader("📈 Tempo por Volta (lap_duration)")
 
 @st.cache_data(ttl=300)
 def carregar_voltas(sk, drivers):
-    return db_utils.get_laps_for_drivers(sk, drivers)
+    # driver_numbers precisa ser tuple porque lista não é hashable no cache
+    return db_utils.get_laps_for_drivers(sk, list(drivers))
 
-voltas_raw = carregar_voltas(session_key, driver_numbers)
+voltas_raw = carregar_voltas(session_key, tuple(driver_numbers))
 
 if not voltas_raw:
     st.info("Sem dados de voltas para os pilotos selecionados nesta sessão.")
@@ -275,12 +276,14 @@ else:
             st.info("Não há tempos de setor registrados para estas voltas.")
 
     # ---- Tabela de dados brutos ----
+    # colunas_exibir definida antes do expander pra poder ser usada no download_button
+    colunas_exibir = [c for c in [
+        "piloto", "lap_number", "lap_duration",
+        "duration_sector_1", "duration_sector_2", "duration_sector_3",
+        "is_pit_out_lap"
+    ] if c in df.columns]
+
     with st.expander("📋 Ver tabela de dados"):
-        colunas_exibir = [c for c in [
-            "piloto", "lap_number", "lap_duration",
-            "duration_sector_1", "duration_sector_2", "duration_sector_3",
-            "is_pit_out_lap"
-        ] if c in df.columns]
         st.dataframe(
             df[colunas_exibir].sort_values(["piloto", "lap_number"]),
             use_container_width=True,
