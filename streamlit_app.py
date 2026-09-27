@@ -59,7 +59,7 @@ if not anos:
 
 ano_selecionado = st.sidebar.selectbox("Selecione o Ano", anos)
 
-tipos_sessao = ["Race", "Qualifying", "Practice 1", "Practice 2", "Practice 3"]
+tipos_sessao = ["Race", "Qualifying", "Practice"]
 tipo_sessao = st.sidebar.selectbox("Tipo de Sessão", tipos_sessao)
 
 # Carrega as sessões do ano e tipo escolhidos
